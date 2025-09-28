@@ -1,0 +1,6 @@
+# Swahili translations
+msgid ""
+msgstr ""
+"Language: sw\n"
+
+# Ongeza tafsiri hapa

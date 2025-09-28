@@ -1,0 +1,6 @@
+# English translations
+msgid ""
+msgstr ""
+"Language: en\n"
+
+# Add actual translations here
