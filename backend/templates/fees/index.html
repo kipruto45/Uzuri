@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Fees Statement - Uzuri{% endblock %}
+{% block content %}
+  <div class="bg-white p-4 rounded shadow">
+    <h2 class="text-xl font-semibold">Fees Statement</h2>
+    <div class="mt-4">
+      <canvas id="feesChart" height="120"></canvas>
+    </div>
+    <div class="mt-4">
+      <a class="inline-block bg-green-600 text-white px-3 py-1 rounded" href="#">Export PDF</a>
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+<script>
+const fctx = document.getElementById('feesChart')
+if (fctx) new Chart(fctx.getContext('2d'), { type:'bar', data:{ labels:['Jan','Feb','Mar'], datasets:[{label:'Fees', data:[1200,800,1000], backgroundColor:'#60A5FA'}] } })
+</script>
+{% endblock %}

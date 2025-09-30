@@ -1,0 +1,18 @@
+<header class="bg-white border-b">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <a href="/" class="font-bold text-xl">Uzuri</a>
+      <form action="" method="get" class="hidden md:block">
+        <input name="q" placeholder="Search" class="border rounded-md px-2 py-1" />
+      </form>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button class="p-2 rounded-full hover:bg-gray-100">🔔</button>
+      <div class="flex items-center gap-2">
+        <img src="{% static 'avatar-placeholder.png' %}" class="w-8 h-8 rounded-full" alt="Profile" />
+        <div class="text-sm">{{ request.user.get_full_name|default:request.user.username }}</div>
+      </div>
+    </div>
+  </div>
+</header>

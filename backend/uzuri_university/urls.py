@@ -42,6 +42,8 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Simple template-based pages for development / preview
+    path('', include('uzuri_university.views_templates') if False else ''),
     path('api/notifications/analytics/', public_analytics),
     path('api/', include('core.urls')),
     path('api/attachments/', include('attachments.urls')),
@@ -65,4 +67,28 @@ urlpatterns = [
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    # Expose docs under /api/docs/ for frontend consumption
+    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='api-docs'),
+    # Provide v1 compatibility endpoint - mirror existing api root
+    path('api/v1/', include('core.urls')),
+    path('api/v1/attachments/', include('attachments.urls')),
+    path('api/v1/payments/', include('payments.urls')),
 ]
+from .views_templates import dashboard, fees, hostel, academic_leave, attachments_index, notifications_index
+
+# Development preview routes (simple HTML pages) -- not intended for production routing
+urlpatterns += [
+    path('', dashboard, name='dashboard_preview'),
+    path('fees/', fees, name='fees_preview'),
+    path('hostel/', hostel, name='hostel_preview'),
+    path('academic_leave/', academic_leave, name='academic_leave_preview'),
+    path('attachments/', attachments_index, name='attachments_preview'),
+    path('notifications/', notifications_index, name='notifications_preview'),
+]
+
+# Serve media files during development
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

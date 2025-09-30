@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Hostel Booking - Uzuri{% endblock %}
+{% block content %}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="col-span-2">
+      <div class="bg-white p-4 rounded shadow">
+        <h2 class="text-xl font-semibold">Available Rooms</h2>
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4" id="rooms">
+          <!-- room cards; use API to render images and availability -->
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="bg-white p-4 rounded shadow">
+        <h3 class="font-semibold">Booking</h3>
+        <form method="post" action="/api/hostel/book/">
+          {% csrf_token %}
+          <label class="block mt-2">Room</label>
+          <select name="room" class="w-full border rounded p-2">
+            <option>Choose a room</option>
+          </select>
+          <button class="mt-3 bg-blue-600 text-white px-3 py-1 rounded">Apply</button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

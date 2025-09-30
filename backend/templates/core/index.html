@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - Uzuri{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="bg-white p-4 rounded shadow">
+    <h3 class="font-semibold">Notifications</h3>
+    <div id="notifications" class="mt-2">
+      <!-- HTMX endpoint could load notifications list here -->
+    </div>
+  </div>
+  <div class="bg-white p-4 rounded shadow">
+    <h3 class="font-semibold">Quick links</h3>
+    <ul class="mt-2 space-y-2">
+      <li><a href="/fees/" class="text-blue-600">Fees statement</a></li>
+      <li><a href="/hostel/" class="text-blue-600">Hostel booking</a></li>
+      <li><a href="/academic_leave/" class="text-blue-600">Academic leave</a></li>
+    </ul>
+  </div>
+  <div class="bg-white p-4 rounded shadow">
+    <h3 class="font-semibold">System health</h3>
+    <canvas id="healthChart" height="120"></canvas>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// small demo chart
+const ctx = document.getElementById('healthChart')
+if (ctx) {
+  new Chart(ctx.getContext('2d'), {
+    type: 'doughnut',
+    data: { labels: ['OK','Warnings','Errors'], datasets:[{ data:[80,15,5], backgroundColor:['#34D399','#FBBF24','#F87171'] }] }
+  })
+}
+</script>
+{% endblock %}

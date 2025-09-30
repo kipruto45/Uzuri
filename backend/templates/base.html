@@ -1,0 +1,44 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Uzuri University{% endblock %}</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}" />
+    <!-- Tailwind via CDN for quick, modern styling in templates -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine for small interactivity -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- htmx for progressive interactions -->
+    <script src="https://unpkg.com/htmx.org@1.9.3"></script>
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      /* small helper to keep the layout nice */
+      .content-scroll { max-height: calc(100vh - 4rem); overflow: auto; }
+    </style>
+    {% block head_extra %}{% endblock %}
+  </head>
+  <body class="bg-gray-50 text-gray-900">
+    <div class="min-h-screen flex">
+      {% include 'includes/sidebar.html' %}
+      <div class="flex-1 flex flex-col">
+        {% include 'includes/navbar.html' %}
+        <main class="p-6">
+          <div class="container mx-auto">
+            {% if messages %}
+              <div class="space-y-2 mb-4">
+                {% for message in messages %}
+                  <div class="p-3 rounded {{ message.tags }} bg-white shadow">{{ message }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+          </div>
+        </main>
+      </div>
+    </div>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

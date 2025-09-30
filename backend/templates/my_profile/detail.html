@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}My Profile - Uzuri{% endblock %}
+{% block content %}
+  <div class="bg-white p-4 rounded shadow max-w-3xl mx-auto">
+    <div class="flex items-center gap-4">
+      <img src="{{ profile.avatar.url if profile.avatar else static('avatar-placeholder.png') }}" class="w-28 h-28 rounded-full object-cover" />
+      <div>
+        <h2 class="text-xl font-semibold">{{ profile.user.get_full_name }}</h2>
+        <div class="text-sm text-gray-600">{{ profile.student_number }}</div>
+      </div>
+    </div>
+    <div class="mt-4">
+      <h3 class="font-medium">Contact</h3>
+      <div>{{ profile.phone }} | {{ profile.email }}</div>
+    </div>
+  </div>
+{% endblock %}

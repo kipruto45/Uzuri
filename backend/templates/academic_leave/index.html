@@ -1,0 +1,11 @@
+<div className="mt-2">
+      <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-md p-4 text-center">
+        <div className="flex items-center justify-center text-gray-500 dark:text-gray-400">
+          <Paperclip className="w-6 h-6 mr-2" />
+          <div>
+            <div className="font-medium">Drag & drop files here</div>
+            <div className="text-xs">or <button type="button" className="text-indigo-600" onClick={() => fileRef.current.click()}>browse</button></div>
+          </div>
+        </div>
+        <input ref={fileRef} type="file" className="hidden" onChange={(e) => handleFiles(e.target.files)} multiple />
+      </div>
