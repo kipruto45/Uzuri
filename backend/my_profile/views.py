@@ -3,21 +3,24 @@ from rest_framework.views import APIView
 from notifications.models import Notification
 from notifications.utils import get_unread_count, get_notification_types, get_delivery_status
 
+
 def get_notification_context(user):
-    notifications = Notification.objects.filter(user=user).order_by('-created_at')
-    unread_count = get_unread_count(user)
-    notification_types = get_notification_types(user)
-    delivery_status = get_delivery_status(user)
-    return {
-        "notifications": notifications,
-        "unread_notification_count": unread_count,
-        "notification_types": notification_types,
-        "notification_delivery_status": delivery_status,
-    }
+	notifications = Notification.objects.filter(user=user).order_by('-timestamp')
+	unread_count = get_unread_count(user)
+	notification_types = get_notification_types(user)
+	delivery_status = get_delivery_status(user)
+	return {
+		"notifications": notifications,
+		"unread_notification_count": unread_count,
+		"notification_types": notification_types,
+		"notification_delivery_status": delivery_status,
+	}
+
 
 class IsStudentSelf(permissions.BasePermission):
 	def has_object_permission(self, request, view, obj):
 		return obj.user == request.user
+
 
 class StudentProfileAPIView(APIView):
 	permission_classes = [permissions.IsAuthenticated, IsStudentSelf]

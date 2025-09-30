@@ -18,7 +18,7 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
         return self.create_user(email, password, **extra_fields)
-
+    
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30)
@@ -30,6 +30,35 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = CustomUserManager()
+    @property
+    def student_number(self):
+        """Convenience accessor for student number.
+
+        Tries several common places so code that expects `user.student_number`
+        or `user.student_id` continues to work regardless of which app keeps
+        the canonical value on the profile.
+        """
+        # Avoid recursion when a database field named 'student_number' exists
+        # on this model (the instance dict will contain the raw value).
+        if 'student_number' in self.__dict__:
+            val = self.__dict__.get('student_number')
+            if val:
+                return val
+        if 'student_id' in self.__dict__:
+            val = self.__dict__.get('student_id')
+            if val:
+                return val
+
+        # common related profile names
+        for rel in ("profile", "studentprofile", "student_profile"):
+            profile = getattr(self, rel, None)
+            if profile:
+                val = getattr(profile, "student_id", None) or getattr(profile, "student_number", None)
+                if val:
+                    return val
+
+        return None
+
     def __str__(self):
         return self.email
 
@@ -72,8 +101,13 @@ class StudentProfile(models.Model):
     student_id = models.CharField(max_length=32, unique=True, blank=True, editable=False, null=True)
     def save(self, *args, **kwargs):
         if not self.student_id:
-            # Dynamic codes (replace with actual lookups if you have related models)
-            self.student_id = f"UZ-{self.year}-{self.program[:2].upper()}-{self.user.id}"
+            # Generate a sequential, zero-padded sequence per year to match tests.
+            # Format: UZ-<year>-<PROGRAM2>-<sequence:05d>
+            prefix = f"UZ-{self.year}-{self.program[:2].upper()}"
+            # Count existing profiles for this year and program to derive next sequence.
+            existing_count = StudentProfile.objects.filter(year=self.year, program=self.program).count()
+            seq = existing_count + 1
+            self.student_id = f"{prefix}-{seq:05d}"
         super().save(*args, **kwargs)
     def __str__(self):
         email = self.user.email if self.user else "No Email"

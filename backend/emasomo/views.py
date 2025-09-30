@@ -402,6 +402,8 @@ class DashboardWidgetViewSet(viewsets.ModelViewSet):
 class LoginWithEmailView(APIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'login'
+    # Login must be publicly accessible so tests can POST credentials
+    permission_classes = []
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')

@@ -1,5 +1,5 @@
 from django.db import models
-from rest_framework import viewsets, permissions, throttling
+from rest_framework import viewsets, permissions, throttling, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Attachment, AttachmentComment, AttachmentTag, AttachmentAccessLog
@@ -34,7 +34,8 @@ class AttachmentViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)
+        # Attachment model stores uploader in `uploaded_by`.
+        serializer.save(uploaded_by=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     queryset = Attachment.objects.all()
     serializer_class = AttachmentSerializer
@@ -44,14 +45,16 @@ class AttachmentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
-        # Only show approved, non-expired, shared, or owned attachments
+        # Only show attachments that are approved or owned/shared/non-confidential.
+        # Previously we applied `is_approved=True` first which excluded
+        # attachments uploaded by the current user (which are often unapproved
+        # immediately after upload) and caused detail actions to return 404.
         now = timezone.now()
-        qs = qs.filter(
-            is_approved=True,
-        ).exclude(
+        qs = qs.exclude(
             expiry_date__isnull=False,
             expiry_date__lt=now
         ).filter(
+            models.Q(is_approved=True) |
             models.Q(shared_with_users=user) |
             models.Q(shared_with_groups__in=user.groups.all()) |
             models.Q(uploaded_by=user) |
