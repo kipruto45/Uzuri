@@ -4,11 +4,13 @@ import userEvent from '@testing-library/user-event'
 import NewRequestModal from '../NewRequestModal'
 
 // Mock the API module
-jest.mock('../../api', () => ({
-  createLeaveRequest: jest.fn(() => Promise.resolve({ id: 1 })),
-  uploadLeaveDocument: jest.fn((id, fd, onProgress) => {
-    // simulate progress events
-    return new Promise((res) => {
+jest.mock('../../api', () => {
+  const createLeaveRequest = jest.fn(() => Promise.resolve({ id: 1 }))
+  let callCount = 0
+  const uploadLeaveDocument = jest.fn((id, fd, onProgress) => {
+    callCount += 1
+    // first call simulates a failure after some progress, subsequent calls succeed
+    return new Promise((res, rej) => {
       let loaded = 0
       const total = 100
       const t = setInterval(() => {
@@ -16,12 +18,17 @@ jest.mock('../../api', () => ({
         onProgress && onProgress({ loaded, total })
         if (loaded >= total) {
           clearInterval(t)
-          res({ status: 'ok' })
+          if (callCount === 1) {
+            rej(new Error('network'))
+          } else {
+            res({ status: 'ok' })
+          }
         }
       }, 5)
     })
   })
-}))
+  return { createLeaveRequest, uploadLeaveDocument }
+})
 
 describe('NewRequestModal', () => {
   beforeEach(() => jest.clearAllMocks())
@@ -64,7 +71,14 @@ describe('NewRequestModal', () => {
     const submitFinal = screen.getByRole('button', { name: /Submit/i })
     userEvent.click(submitFinal)
 
-    // Wait for combined progress to reach at least 25
+    // Wait for upload failure to be shown
+    await waitFor(() => expect(screen.getByText(/Upload failed|network/i) || screen.getByText(/Upload failed/)))
+
+    // Click retry button for the file
+    const retryBtn = await screen.findByRole('button', { name: /Retry/i })
+    userEvent.click(retryBtn)
+
+    // After retry the combined progress should be visible
     expect(await screen.findByText(/Uploading documents:/i)).toBeInTheDocument()
     await waitFor(() => expect(screen.getByText(/Uploading documents:/i)).toBeInTheDocument())
   })
