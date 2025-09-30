@@ -18,6 +18,11 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include, re_path
+# Project-level explicit analytics endpoint to avoid being shadowed by
+# other routers that also register 'notifications' (core registers a
+# notifications router at /api/). Put this before including core.urls so
+# it takes precedence.
+from notifications.views import public_analytics
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -37,6 +42,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/notifications/analytics/', public_analytics),
     path('api/', include('core.urls')),
     path('api/attachments/', include('attachments.urls')),
     path('api/payments/', include('payments.urls')),
@@ -45,6 +51,7 @@ urlpatterns = [
     path('api/timetable/', include('timetable.urls')),
     path('api/notifications/', include('notifications.urls')),
     path('api/emasomo/', include('emasomo.urls')),
+    path('api/hostel/', include('hostel.urls')),
     path('api/calendar/', include('calendar_app.urls')),
     path('', include('my_profile.urls')),
     path('', include('fees.urls')),

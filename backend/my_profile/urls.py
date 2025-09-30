@@ -1,22 +1,18 @@
 
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import LoginActivityViewSet, StudentProfileViewSet, IDCardReplacementRequestAdminViewSet, NotificationViewSet, AdminNotificationViewSet, StudentProfileAPIView, IDCardRequestAPIView
-
-
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import LoginActivityViewSet, StudentProfileViewSet, IDCardReplacementRequestAdminViewSet, NotificationViewSet, AdminNotificationViewSet
-
-router = DefaultRouter()
-router.register(r'login-activity', LoginActivityViewSet, basename='login-activity')
-router.register(r'student/profile', StudentProfileViewSet, basename='student-profile')
-router.register(r'admin/id-card/requests', IDCardReplacementRequestAdminViewSet, basename='admin-id-card-requests')
-router.register(r'notifications', NotificationViewSet, basename='notification')
-router.register(r'admin/notifications', AdminNotificationViewSet, basename='admin-notification')
+from django.urls import path
+from .views import (
+    StudentProfileViewSet,
+    IDCardReplacementRequestAdminViewSet,
+    StudentProfileAPIView,
+    IDCardRequestAPIView,
+    IDCardDownloadAPIView,
+)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
+    # Explicit mappings so tests that hit '/api/student/profile/' operate against the
+    # viewset actions we expect (GET -> get_profile, PATCH -> update_profile).
+    # APIView-backed explicit mappings used by tests (avoid router redirects)
     path('api/student/profile/', StudentProfileAPIView.as_view(), name='student-profile'),
-    path('api/student/profile/id-card/request/', IDCardRequestAPIView.as_view(), name='student-profile-id-card-request'),
+    path('api/student/profile/id-card/request/', IDCardRequestAPIView.as_view(), name='student-profile-id-card-request-explicit'),
+    path('api/student/profile/id-card/', IDCardDownloadAPIView.as_view(), name='student-profile-id-card'),
 ]

@@ -61,7 +61,7 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     program = models.CharField(max_length=100)
     year_of_study = models.PositiveIntegerField()
-    dob = models.DateField()
+    dob = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=10)
     phone = models.CharField(max_length=20)
     address = models.CharField(max_length=255)

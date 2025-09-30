@@ -7,12 +7,29 @@ class Migration(migrations.Migration):
         ('core', '0005_studentprofile_student_id'),
     ]
     operations = [
-        migrations.CreateModel(
-            name='RegistrarProfile',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('role', models.CharField(max_length=16)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='core.CustomUser')),
+        
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                        CREATE TABLE IF NOT EXISTS core_registrarprofile (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            role VARCHAR(16),
+                            user_id INTEGER UNIQUE REFERENCES core_customuser(id)
+                        );
+                    """,
+                    reverse_sql="DROP TABLE IF EXISTS core_registrarprofile;",
+                ),
+            ],
+            state_operations=[
+                migrations.CreateModel(
+                    name='RegistrarProfile',
+                    fields=[
+                        ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('role', models.CharField(max_length=16)),
+                        ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='core.CustomUser')),
+                    ],
+                ),
             ],
         ),
         migrations.CreateModel(

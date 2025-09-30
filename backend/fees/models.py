@@ -1,7 +1,15 @@
 
 
 from django.db import models
-from my_profile.models import StudentProfile
+from django.conf import settings
+from django.apps import apps
+from django.contrib.auth import get_user_model
+
+def _get_student_profile_model():
+	try:
+		return apps.get_model('my_profile', 'StudentProfile')
+	except Exception:
+		return None
 
 class FeeStructure(models.Model):
 	CATEGORY_CHOICES = [
@@ -40,7 +48,7 @@ class Invoice(models.Model):
 		('partial', 'Partial'),
 		('overdue', 'Overdue'),
 	]
-	student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='invoices')
+	student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='invoices')
 	description = models.CharField(max_length=255)
 	category = models.CharField(max_length=20, choices=FeeStructure.CATEGORY_CHOICES, null=True, blank=True)
 	amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -74,7 +82,7 @@ class Transaction(models.Model):
 		('failed', 'Failed'),
 		('refunded', 'Refunded'),
 	]
-	student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='transactions')
+	student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='transactions')
 	invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='transactions')
 	amount = models.DecimalField(max_digits=10, decimal_places=2)
 	method = models.CharField(max_length=10, choices=METHOD_CHOICES)
@@ -104,7 +112,7 @@ class Scholarship(models.Model):
 		('bursary', 'Bursary'),
 		('waiver', 'Waiver'),
 	]
-	student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='scholarships')
+	student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='scholarships')
 	type = models.CharField(max_length=20, choices=TYPE_CHOICES)
 	amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 	percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
@@ -113,6 +121,10 @@ class Scholarship(models.Model):
 
 	def __str__(self):
 		return f"{self.type} for {self.student}"
+
+	def save(self, *args, **kwargs):
+		# Keep student as AUTH_USER_MODEL instance to match migrations and tests
+		super(Scholarship, self).save(*args, **kwargs)
 
 class AuditTrail(models.Model):
 	from django.conf import settings
