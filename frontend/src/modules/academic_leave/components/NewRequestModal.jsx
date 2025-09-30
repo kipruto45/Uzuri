@@ -5,6 +5,7 @@ import { createLeaveRequest, uploadLeaveDocument } from '../api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Paperclip } from 'lucide-react'
 import toast from 'react-hot-toast'
+import CombinedUploadModal from './CombinedUploadModal'
 
 function FileDrop({ onChange, maxSizeMB = 10, allowedTypes = null }) {
   const fileRef = useRef()
@@ -85,9 +86,10 @@ export default function NewRequestModal({ isOpen, onClose }) {
         // persist request id for potential retry actions
         setCurrentRequestId(data.id)
         setUploading(true)
-        // Compute combined progress by aggregating per-file loaded/total
-        const totalBytes = files.reduce((s, e) => s + (e.file?.size || 0), 0)
-        const perFileLoaded = {}
+  // Compute combined progress by aggregating per-file loaded/total
+  const totalBytes = files.reduce((s, e) => s + (e.file?.size || 0), 0)
+  const perFileLoaded = {}
+  setUploadStartTs(Date.now())
 
         for (let i = 0; i < files.length; i++) {
           const entry = files[i]
@@ -100,6 +102,7 @@ export default function NewRequestModal({ isOpen, onClose }) {
               // update per-file loaded
               perFileLoaded[i] = ev.loaded
               const loadedSum = Object.values(perFileLoaded).reduce((a, b) => a + b, 0)
+              setBytesLoadedTotal(loadedSum)
               const pct = totalBytes ? Math.round((loadedSum / totalBytes) * 100) : 0
               setCombinedProgress(pct)
               const filePct = ev.total ? Math.round((ev.loaded / ev.total) * 100) : 0
@@ -126,6 +129,8 @@ export default function NewRequestModal({ isOpen, onClose }) {
   const [combinedProgress, setCombinedProgress] = useState(0)
   const [uploading, setUploading] = useState(false)
   const [currentRequestId, setCurrentRequestId] = useState(null)
+  const [bytesLoadedTotal, setBytesLoadedTotal] = useState(0)
+  const [uploadStartTs, setUploadStartTs] = useState(null)
 
   const validateStep = (s) => {
     const err = {}
@@ -192,6 +197,7 @@ export default function NewRequestModal({ isOpen, onClose }) {
   }
 
   return (
+    <>
     <Dialog open={isOpen} onClose={onClose} className="" initialFocus={selectRef}>
       <div className="min-h-screen px-4 text-center">
         <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
@@ -347,6 +353,18 @@ export default function NewRequestModal({ isOpen, onClose }) {
           </form>
         </motion.div>
       </div>
-    </Dialog>
+  </Dialog>
+  <CombinedUploadModal
+      open={uploading}
+      onClose={() => {}}
+      progress={combinedProgress}
+      etaSeconds={uploadStartTs && bytesLoadedTotal ? (() => {
+        const elapsed = (Date.now() - uploadStartTs) / 1000
+        const speed = bytesLoadedTotal / Math.max(1, elapsed)
+        const remaining = Math.max(0, files.reduce((s, e) => s + (e.file?.size || 0), 0) - bytesLoadedTotal)
+        return speed > 0 ? remaining / speed : null
+      })() : null}
+    />
+    </>
   )
 }

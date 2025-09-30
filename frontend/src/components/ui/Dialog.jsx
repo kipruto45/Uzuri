@@ -1,29 +1,23 @@
-import React, { useEffect } from 'react'
-import ReactDOM from 'react-dom'
+import React from 'react'
+import * as RadixDialog from '@radix-ui/react-dialog'
 
-// Minimal ShadCN-style Dialog wrapper (small surface compatible with existing usage)
-export default function Dialog({ open, onClose, children, className, initialFocus }) {
-  useEffect(() => {
-    if (!open) return
-    if (initialFocus && initialFocus.current) {
-      try { initialFocus.current.focus() } catch (e) {}
-    }
-  }, [open, initialFocus])
-
-  if (!open) return null
-
-  return ReactDOM.createPortal(
-    <div className={`fixed inset-0 z-50 ${className || ''}`}> 
-      {children}
-    </div>,
-    document.body
+// A small wrapper that exposes a similar surface to previous Dialog usage.
+export default function Dialog({ open, onClose, children, className }) {
+  return (
+    <RadixDialog.Root open={open} onOpenChange={(o) => { if (!o) onClose && onClose() }}>
+      <RadixDialog.Portal>
+        <div className={`fixed inset-0 z-50 ${className || ''}`}>
+          {children}
+        </div>
+      </RadixDialog.Portal>
+    </RadixDialog.Root>
   )
 }
 
-Dialog.Overlay = function DialogOverlay({ className }) {
-  return <div className={className} />
-}
+export const DialogOverlay = ({ className }) => (
+  <RadixDialog.Overlay className={className} />
+)
 
-Dialog.Title = function DialogTitle({ children, className }) {
-  return <h2 className={className}>{children}</h2>
-}
+export const DialogTitle = ({ children, className }) => (
+  <RadixDialog.Title className={className}>{children}</RadixDialog.Title>
+)
