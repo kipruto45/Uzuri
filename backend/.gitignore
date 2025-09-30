@@ -1,0 +1,17 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+
+# SQLite DB used in development/tests
+db.sqlite3
+
+# Media uploaded during tests
+media/
+
+# Django migrations backed up or generated during local work
+*/migrations/__pycache__/
+
+# Temporary and backup files
+*.bak
+*.orig
+*~

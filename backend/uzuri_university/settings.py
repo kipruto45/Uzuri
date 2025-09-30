@@ -31,6 +31,7 @@ if 'test' in sys.argv or os.environ.get('PYTEST_CURRENT_TEST'):
         }
     }
     # Keep migrations enabled; tests need a consistent migration graph.
+    # Keep migrations enabled; tests need a consistent migration graph.
 # --- Internationalization ---
 LANGUAGE_CODE = 'en'
 LANGUAGES = [
@@ -218,6 +219,21 @@ CORS_ALLOWED_ORIGINS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# When running tests, relax strict security settings to avoid HTTPS redirects and
+# DisallowedHost errors caused by the test client (which uses 'testserver').
+import sys
+if 'test' in sys.argv or os.environ.get('PYTEST_CURRENT_TEST'):
+    DEBUG = True
+    # Avoid redirecting to HTTPS during tests which converts POST->GET on follow
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    # Allow the Django test client's default host
+    ALLOWED_HOSTS = ALLOWED_HOSTS + ['testserver', 'localhost']
+    # Disable MFA enforcement during tests so middleware doesn't block APIClient.force_authenticate
+    MFA_ENABLED = False
+    # Note: do not change REST_FRAMEWORK here; keep test-time overrides minimal.
+
 # Exam card expiry (days)
 EXAM_CARD_EXPIRY_DAYS = 30
 
@@ -287,6 +303,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# If running tests, make sure the debug middleware is present so we capture
+# PermissionDenied tracebacks for diagnostics. The earlier test-time block
+# toggles DEBUG/MFA; this placement ensures MIDDLEWARE is defined before we
+# attempt to mutate it.
+if 'test' in sys.argv or os.environ.get('PYTEST_CURRENT_TEST'):
+    # No test-only middleware inserted.
+    pass
+
 ROOT_URLCONF = 'uzuri_university.urls'
 
 TEMPLATES = [
@@ -315,6 +339,15 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+# During tests use an in-memory channel layer to avoid requiring a running
+# Redis instance and to silence noisy connection refused logs from tests.
+if 'test' in sys.argv or os.environ.get('PYTEST_CURRENT_TEST'):
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        }
+    }
 
 WSGI_APPLICATION = 'uzuri_university.wsgi.application'
 # Celery settings
