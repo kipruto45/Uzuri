@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Attachments - Uzuri{% endblock %}
+{% block content %}
+  <div class="bg-white p-4 rounded shadow">
+    <h2 class="text-xl font-semibold">Attachments</h2>
+    <div class="mt-3">
+      <form method="post" enctype="multipart/form-data" hx-post="/api/attachments/" hx-include="this">
+        {% csrf_token %}
+        <input type="file" name="file" />
+        <button class="ml-2 px-3 py-1 bg-blue-600 text-white rounded">Upload</button>
+      </form>
+    </div>
+    <div class="mt-4" id="attachment-list">
+      <!-- attachments list could be loaded via HTMX or backend rendering -->
+    </div>
+  </div>
+{% endblock %}

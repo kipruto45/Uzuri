@@ -1,0 +1,28 @@
+import React from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import LoginPage from '../auth/LoginPage'
+import DashboardPage from '../pages/DashboardPage'
+import NotificationsPage from '../modules/notifications/NotificationsPage'
+import FeesPage from '../modules/fee_management/FeesPage'
+import AttachmentsPage from '../modules/attachments/AttachmentsPage'
+import PaymentsPage from '../modules/payments/PaymentsPage'
+import ProfilePage from '../modules/my_profile/ProfilePage'
+import LeaveListPage from '../modules/academic_leave/pages/LeaveListPage'
+import AcademicLeavePage from '../modules/academic_leave/AcademicLeavePage'
+import RequireAuth from '../auth/RequireAuth'
+
+export default function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+  <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+  <Route path="/" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+      <Route path="/fees" element={<RequireAuth><FeesPage /></RequireAuth>} />
+      <Route path="/attachments" element={<RequireAuth><AttachmentsPage /></RequireAuth>} />
+      <Route path="/payments" element={<RequireAuth><PaymentsPage /></RequireAuth>} />
+      <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+  <Route path="/academic-leave" element={<RequireAuth><AcademicLeavePage /></RequireAuth>} />
+      <Route path="/" element={<Navigate to="/notifications" replace />} />
+    </Routes>
+  )
+}

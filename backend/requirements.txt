@@ -35,3 +35,8 @@ msgpack
 six
 tzdata
 wcwidth
+africastalking
+django-cors-headers
+django-filter
+boto3
+django-storages

@@ -1,0 +1,29 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ main, chore/**, feature/**, '*']
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+      - name: Run tests
+        working-directory: ./frontend
+        run: npm test -- --runInBand --silent
+      - name: Build (optional)
+        working-directory: ./frontend
+        run: npm run build --silent

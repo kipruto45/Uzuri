@@ -41,21 +41,22 @@ LANGUAGES = [
 ]
 LOCALE_PATHS = [os.path.join(BASE_DIR, 'locale')]
 # --- Security Settings ---
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+# Allow disabling strict HTTPS enforcement in development by setting DJANGO_DEBUG=True
+# If DJANGO_DEBUG == 'True' then these security flags will be relaxed for local testing.
+_DJANGO_DEBUG_ENV = os.environ.get('DJANGO_DEBUG', 'False')
+SECURE_SSL_REDIRECT = False if _DJANGO_DEBUG_ENV == 'True' else True
+SESSION_COOKIE_SECURE = False if _DJANGO_DEBUG_ENV == 'True' else True
+CSRF_COOKIE_SECURE = False if _DJANGO_DEBUG_ENV == 'True' else True
+SECURE_HSTS_SECONDS = 0 if _DJANGO_DEBUG_ENV == 'True' else 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False if _DJANGO_DEBUG_ENV == 'True' else True
+SECURE_HSTS_PRELOAD = False if _DJANGO_DEBUG_ENV == 'True' else True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '').split(',') if os.environ.get('CORS_ORIGIN_WHITELIST') else []
 # --- Imports ---
-import os
-import logging
-import logging.config
+# (core stdlib imports are declared at the top of this file; avoid duplicate imports)
 # Google Calendar API credentials
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', 'your-google-client-id')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', 'your-google-client-secret')
@@ -189,20 +190,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-9k)-f4iy3fb1$*t5hupfx7ou9vs^fob)cj$s7cpu+whwp*90m2'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-9k)-f4iy3fb1$*t5hupfx7ou9vs^fob)cj$s7cpu+whwp*90m2')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# DEBUG can be toggled for local development by setting the DJANGO_DEBUG environment variable to 'True'
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com']  # Replace with your actual domain(s)
+ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com', 'localhost', '127.0.0.1']  # Replace with your actual domain(s)
 
 # Security settings
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+# Respect DEBUG so local development doesn't force HTTPS or set secure-only cookies.
+# In production (DEBUG=False) these should be True / strict values.
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+# HSTS: zero during development, long-lived in production
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
+# Include subdomains/preload only in production
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False if DEBUG else True
+SECURE_HSTS_PRELOAD = False if DEBUG else True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
@@ -221,7 +227,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # When running tests, relax strict security settings to avoid HTTPS redirects and
 # DisallowedHost errors caused by the test client (which uses 'testserver').
-import sys
 if 'test' in sys.argv or os.environ.get('PYTEST_CURRENT_TEST'):
     DEBUG = True
     # Avoid redirecting to HTTPS during tests which converts POST->GET on follow
@@ -287,9 +292,11 @@ INSTALLED_APPS = [
     'calendar_app',
     'emasomo',
     'notifications',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -302,6 +309,28 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CORS configuration for local frontend development
+# Allow specifying CORS origins via env or default to common dev ports
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000').split(',')
+CORS_ORIGIN_ALLOW_ALL = os.environ.get('CORS_ORIGIN_ALLOW_ALL', 'False') in ('True', 'true', '1')
+
+# REST Framework global settings: JWT auth, pagination, filters
+REST_FRAMEWORK.update({
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+})
 
 # If running tests, make sure the debug middleware is present so we capture
 # PermissionDenied tracebacks for diagnostics. The earlier test-time block
