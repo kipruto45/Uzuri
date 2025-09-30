@@ -2,6 +2,9 @@ from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 from django.http import JsonResponse
 import logging
+import sys
+import os
+import traceback
 
 class AuditLogMiddleware(MiddlewareMixin):
     def process_request(self, request):
@@ -13,6 +16,8 @@ class MFAEnforcementMiddleware(MiddlewareMixin):
     def process_request(self, request):
         # Enforce MFA for sensitive endpoints only when enabled in settings.
         # Tests and many local dev setups don't enable MFA, so default to off.
+        # (original behavior) only skip MFA enforcement entirely when the
+        # MFA feature is disabled in settings via MFA_ENABLED.
         if not getattr(settings, 'MFA_ENABLED', False):
             return None
 
@@ -22,6 +27,13 @@ class MFAEnforcementMiddleware(MiddlewareMixin):
             # Some code/tests expect a DRF-like Response with a `.data` attribute.
             # Attach it here to avoid AttributeError("'JsonResponse' object has no attribute 'data'").
             resp.data = payload
+            # Log the blocking with stack trace to help debug which component
+            # caused the 403 during tests and reproduce the call stack.
+            logging.error('MFAEnforcementMiddleware blocking request %s %s', request.method, request.path, exc_info=True)
+            try:
+                logging.error('Current stack:\n%s', ''.join(traceback.format_stack()))
+            except Exception:
+                logging.exception('Failed to format stack')
             return resp
 
 class EncryptionHeadersMiddleware(MiddlewareMixin):

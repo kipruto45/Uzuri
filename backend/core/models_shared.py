@@ -1,4 +1,5 @@
 from django.db import models
+from django.db import transaction
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 
 class CustomUserManager(BaseUserManager):
@@ -99,14 +100,26 @@ class StudentProfile(models.Model):
     study_mode = models.ForeignKey(StudyMode, on_delete=models.SET_NULL, null=True, blank=True)
     disability = models.ForeignKey(Disability, on_delete=models.SET_NULL, null=True, blank=True, related_name='student_disability')
     student_id = models.CharField(max_length=32, unique=True, blank=True, editable=False, null=True)
+    # DB-backed sequence helper model (per-year+program counters)
+    class StudentIDSequence(models.Model):
+        year = models.IntegerField(db_index=True)
+        program = models.CharField(max_length=100, db_index=True)
+        last_sequence = models.PositiveIntegerField(default=0)
+
+        class Meta:
+            unique_together = (('year', 'program'),)
+
     def save(self, *args, **kwargs):
         if not self.student_id:
-            # Generate a sequential, zero-padded sequence per year to match tests.
-            # Format: UZ-<year>-<PROGRAM2>-<sequence:05d>
             prefix = f"UZ-{self.year}-{self.program[:2].upper()}"
-            # Count existing profiles for this year and program to derive next sequence.
-            existing_count = StudentProfile.objects.filter(year=self.year, program=self.program).count()
-            seq = existing_count + 1
+            # Use a DB transaction and select_for_update to safely increment the counter
+            with transaction.atomic():
+                seq_obj, created = StudentProfile.StudentIDSequence.objects.select_for_update().get_or_create(
+                    year=self.year, program=self.program
+                )
+                seq_obj.last_sequence += 1
+                seq = seq_obj.last_sequence
+                seq_obj.save()
             self.student_id = f"{prefix}-{seq:05d}"
         super().save(*args, **kwargs)
     def __str__(self):

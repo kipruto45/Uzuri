@@ -111,7 +111,28 @@ class GraduationClearance(models.Model):
             settings.DEFAULT_FROM_EMAIL,
             [self.student.user.email],
         )
-# Signals for audit logging
+    # model fields for GraduationClearance
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE)
+    status = models.CharField(max_length=16, choices=[('pending','Pending'),('eligible','Eligible'),('ineligible','Ineligible'),('approved','Approved')], default='pending')
+    checked_at = models.DateTimeField(auto_now_add=True)
+    checked_by = models.ForeignKey(RegistrarProfile, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.student} ({self.status})"
+
+
+class RegistrarAuditLog(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    action = models.CharField(max_length=100)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    details = models.TextField(blank=True)
+    encrypted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user} {self.action} @ {self.timestamp:%Y-%m-%d %H:%M}"
+
+
+# Signals for audit logging (placed after model definitions)
 @receiver(post_save, sender=LeaveOfAbsence)
 def log_leave_of_absence(sender, instance, created, **kwargs):
     if created:
@@ -126,6 +147,7 @@ def log_leave_of_absence(sender, instance, created, **kwargs):
             action='Leave of Absence Approved',
             details=f'Approved by: {instance.approved_by}',
         )
+
 
 @receiver(post_save, sender=TransferRequest)
 def log_transfer_request(sender, instance, created, **kwargs):
@@ -142,6 +164,7 @@ def log_transfer_request(sender, instance, created, **kwargs):
             details=f'Approved by: {instance.approved_by}',
         )
 
+
 @receiver(post_save, sender=GraduationClearance)
 def log_graduation_clearance(sender, instance, created, **kwargs):
     if created:
@@ -156,18 +179,3 @@ def log_graduation_clearance(sender, instance, created, **kwargs):
             action='Graduation Clearance Approved',
             details=f'Checked by: {instance.checked_by}',
         )
-    def __str__(self):
-        return f"{self.student} ({self.status})"
-    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE)
-    status = models.CharField(max_length=16, choices=[('pending','Pending'),('eligible','Eligible'),('ineligible','Ineligible'),('approved','Approved')], default='pending')
-    checked_at = models.DateTimeField(auto_now_add=True)
-    checked_by = models.ForeignKey(RegistrarProfile, on_delete=models.SET_NULL, null=True, blank=True)
-
-class RegistrarAuditLog(models.Model):
-    def __str__(self):
-        return f"{self.user} {self.action} @ {self.timestamp:%Y-%m-%d %H:%M}"
-    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
-    action = models.CharField(max_length=100)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    details = models.TextField(blank=True)
-    encrypted = models.BooleanField(default=False)

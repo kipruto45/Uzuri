@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(choices=[('unpaid', 'Unpaid'), ('paid', 'Paid'), ('partial', 'Partial'), ('overdue', 'Overdue')], default='unpaid', max_length=10)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='invoices', to='my_profile.studentprofile')),
+                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='invoices', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
                 ('percentage', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='scholarships', to='my_profile.studentprofile')),
+                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='scholarships', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('invoice', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transactions', to='fees.invoice')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transactions', to='my_profile.studentprofile')),
+                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='transactions', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(

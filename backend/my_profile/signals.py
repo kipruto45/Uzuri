@@ -9,6 +9,9 @@ def send_in_app_notification(student, message):
     from .models import Notification
     from asgiref.sync import async_to_sync
     from channels.layers import get_channel_layer
+    # Provide conservative defaults for notification type and link when called from signals
+    notif_type = 'system'
+    link = ''
     notification = Notification.objects.create(user=student, message=message, type=notif_type, link=link)
     # Log delivery attempt for audit (WebSocket)
     from .tasks import log_notification_delivery
