@@ -88,3 +88,19 @@ CI
 
 A GitHub Actions workflow was added at `.github/workflows/frontend-ci.yml` that runs `npm ci`, executes the test suite, and builds the frontend on push/pull-request.
 
+End-to-end (E2E) tests
+
+We added a basic Cypress E2E test scaffold at `cypress/e2e/upload_spec.cy.js` that exercises the Academic Leave upload flow. To run E2E tests locally:
+
+```powershell
+cd C:\Uzuri\frontend
+npm install
+npm run dev   # start dev server on 5173
+npm run cypress:open
+```
+
+Notes:
+- The test uses file upload in fixtures. To enable `attachFile`, install `cypress-file-upload` and register it in Cypress support if you want to run the file-upload part.
+- Set `CYPRESS_BASE_URL` to your staging frontend URL to run tests against staging (e.g., `https://staging.example.com`).
+
+
