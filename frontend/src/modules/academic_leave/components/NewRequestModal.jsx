@@ -82,6 +82,9 @@ export default function NewRequestModal({ isOpen, onClose }) {
     onSuccess: async (data) => {
       // upload files if present (files is array of {file, error})
       if (files.length) {
+        // persist request id for potential retry actions
+        setCurrentRequestId(data.id)
+        setUploading(true)
         // Compute combined progress by aggregating per-file loaded/total
         const totalBytes = files.reduce((s, e) => s + (e.file?.size || 0), 0)
         const perFileLoaded = {}
@@ -108,6 +111,7 @@ export default function NewRequestModal({ isOpen, onClose }) {
           }
         }
         setCombinedProgress(100)
+        setUploading(false)
       }
       qc.invalidateQueries(['leaveRequests'])
       toast.success('Request submitted')
@@ -120,6 +124,8 @@ export default function NewRequestModal({ isOpen, onClose }) {
   const [fileErrors, setFileErrors] = useState({})
   const [uploadProgress, setUploadProgress] = useState({})
   const [combinedProgress, setCombinedProgress] = useState(0)
+  const [uploading, setUploading] = useState(false)
+  const [currentRequestId, setCurrentRequestId] = useState(null)
 
   const validateStep = (s) => {
     const err = {}
@@ -155,6 +161,34 @@ export default function NewRequestModal({ isOpen, onClose }) {
     }
     // step === 2 -> final submit
     mutation.mutate(form)
+  }
+
+  // helper to retry upload for a single file index (used by UI retry)
+  const retryUpload = async (requestId, index) => {
+    const entry = files[index]
+    if (!entry || entry.error) return
+    const f = entry.file
+    const fd = new FormData()
+    fd.append('file', f)
+    // clear previous error for this index
+    setFileErrors((prev) => {
+      const copy = { ...prev }
+      delete copy[index]
+      return copy
+    })
+    try {
+      const rid = requestId || currentRequestId
+      if (!rid) {
+        toast('Please submit the request first to upload attachments')
+        return
+      }
+      await uploadLeaveDocument(rid, fd, (ev) => {
+        const pct = ev.total ? Math.round((ev.loaded / ev.total) * 100) : 0
+        setUploadProgress((prev) => ({ ...prev, [index]: pct }))
+      })
+    } catch (err) {
+      setFileErrors((prev) => ({ ...prev, [index]: 'Upload failed' }))
+    }
   }
 
   return (
@@ -231,12 +265,14 @@ export default function NewRequestModal({ isOpen, onClose }) {
                           <div className="font-medium">{fobj.file.name}</div>
                           <div className="text-xs text-gray-500">{Math.round(fobj.file.size / 1024)} KB {fobj.error ? <span className="text-red-600">• {fobj.error}</span> : null}</div>
                         </div>
-                        <div className="w-32 text-right">
+                        <div className="w-48 text-right">
                           {uploadProgress[idx] ? (
                             <div className="text-xs">Uploading: {uploadProgress[idx]}%</div>
                           ) : fileErrors[idx] ? (
-                            <div className="text-xs text-red-600">{fileErrors[idx]}</div>
-                          ) : null}
+                            <div className="text-xs text-red-600">{fileErrors[idx]} <button type="button" onClick={() => retryUpload(null, idx)} className="ml-2 text-indigo-600 text-xs">Retry</button></div>
+                          ) : (
+                            <div className="text-xs text-gray-500">Ready</div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -255,6 +291,34 @@ export default function NewRequestModal({ isOpen, onClose }) {
                   <div className="mt-2"><strong>Files:</strong> {files.length} file(s)</div>
                 </div>
                 <div className="text-sm text-gray-500">When you submit, your request and its documents will be uploaded.</div>
+
+                  {files.length > 0 && (
+                    <div className="mt-2 space-y-2">
+                      {files.map((fobj, idx) => (
+                        <div key={idx} className="p-2 border rounded bg-white dark:bg-gray-800">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-medium">{fobj.file.name}</div>
+                            <div className="text-xs text-gray-500">{Math.round(fobj.file.size / 1024)} KB</div>
+                          </div>
+                          <div className="mt-2">
+                            <div className="w-full h-2 bg-gray-100 rounded overflow-hidden">
+                              <div className="h-2 bg-indigo-600" style={{ width: `${uploadProgress[idx] || 0}%` }} />
+                            </div>
+                            <div className="flex items-center justify-between mt-1">
+                              <div className="text-xs text-gray-500">{uploadProgress[idx] ? `${uploadProgress[idx]}%` : fileErrors[idx] ? <span className="text-red-600">{fileErrors[idx]}</span> : 'Pending'}</div>
+                              <div>
+                                {fileErrors[idx] ? (
+                                  <>
+                                    <button type="button" onClick={() => retryUpload(/*requestId set after submit*/ null, idx)} className="text-xs text-indigo-600 mr-2">Retry</button>
+                                  </>
+                                ) : null}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                 {/* Combined progress bar while uploading */}
                 {mutation.isLoading && (
