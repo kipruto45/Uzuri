@@ -13,6 +13,7 @@ import AccessibilityPage from '../modules/accessibility_ai/AccessibilityPage'
 import AiSupportPage from '../modules/ai_support/AiSupportPage'
 import CalendarPage from '../modules/calendar/CalendarPage'
 import ClearancePage from '../modules/clearance/ClearancePage'
+import CoreDashboard from '../modules/core/CoreDashboard'
 import RequireAuth from '../auth/RequireAuth'
 
 export default function AppRoutes() {
@@ -30,6 +31,7 @@ export default function AppRoutes() {
   <Route path="/ai-support" element={<RequireAuth><AiSupportPage /></RequireAuth>} />
     <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
   <Route path="/clearance" element={<RequireAuth><ClearancePage /></RequireAuth>} />
+  <Route path="/core" element={<RequireAuth><CoreDashboard /></RequireAuth>} />
       <Route path="/" element={<Navigate to="/notifications" replace />} />
     </Routes>
   )

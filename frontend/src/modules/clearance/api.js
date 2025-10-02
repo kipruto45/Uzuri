@@ -32,3 +32,22 @@ export async function downloadClearanceDocument(id) {
   const res = await axiosClient.get(`${BASE}${id}/download/`, { responseType: 'blob' })
   return res.data
 }
+
+export async function getClearanceVersions(id) {
+  try {
+    const res = await axiosClient.get(`${BASE}${id}/versions/`)
+    return res.data
+  } catch (e) {
+    // backend may not support versions; return empty
+    return []
+  }
+}
+
+export async function getClearanceAuditLogs(id) {
+  try {
+    const res = await axiosClient.get(`${BASE}${id}/audit/`)
+    return res.data
+  } catch (e) {
+    return []
+  }
+}
