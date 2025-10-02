@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react'
-import Dialog from '../../../components/ui/Dialog'
+import Dialog, { DialogOverlay, DialogTitle } from '../../../components/ui/Dialog'
 import { motion } from 'framer-motion'
 import { createLeaveRequest, uploadLeaveDocument } from '../api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -37,7 +37,7 @@ function FileDrop({ onChange, maxSizeMB = 10, allowedTypes = null }) {
 
   return (
     <div className="mt-2">
-      <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-md p-4 text-center">
+    <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-md p-4 text-center hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
         <div className="flex items-center justify-center text-gray-500 dark:text-gray-400">
           <Paperclip className="w-6 h-6 mr-2" />
           <div>
@@ -45,7 +45,7 @@ function FileDrop({ onChange, maxSizeMB = 10, allowedTypes = null }) {
             <div className="text-xs">or <button type="button" className="text-indigo-600" onClick={() => fileRef.current.click()}>browse</button></div>
           </div>
         </div>
-        <input ref={fileRef} type="file" className="hidden" onChange={(e) => handleFiles(e.target.files)} multiple />
+    <input ref={fileRef} type="file" className="hidden" onChange={(e) => handleFiles(e.target.files)} multiple accept={allowedTypes ? allowedTypes.join(',') : undefined} aria-label="Attach supporting documents" />
       </div>
 
       {files.length > 0 && (
@@ -74,10 +74,28 @@ export default function NewRequestModal({ isOpen, onClose }) {
   const [files, setFiles] = useState([])
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewFile, setPreviewFile] = useState(null)
-  const qc = useQueryClient()
+  let qc = null
+  try {
+    qc = useQueryClient()
+  } catch (e) {
+    qc = null
+  }
 
   // allowed file types: pdf, images, docx
   const allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', '.docx', '.doc']
+
+  const validateStep = (s) => {
+    if (s === 0) {
+      const errs = {}
+      if (!form.leave_type) errs.leave_type = 'Select a leave type'
+      if (!form.start_date) errs.start_date = 'Select a start date'
+      if (!form.end_date) errs.end_date = 'Select an end date'
+      if (!form.reason) errs.reason = 'Please provide a reason'
+      setErrors(errs)
+      return Object.keys(errs).length === 0
+    }
+    return true
+  }
 
   const mutation = useMutation(createLeaveRequest, {
     onSuccess: async (data) => {
@@ -107,6 +125,23 @@ export default function NewRequestModal({ isOpen, onClose }) {
               setCombinedProgress(pct)
               const filePct = ev.total ? Math.round((ev.loaded / ev.total) * 100) : 0
               setUploadProgress((prev) => ({ ...prev, [i]: filePct }))
+              // instantaneous speed sample (bytes/sec) using combined loaded delta
+              try {
+                const now = Date.now()
+                const prevLoaded = lastLoadedRef.current || 0
+                const prevTs = lastTsRef.current || uploadStartTs || now
+                const deltaBytes = Math.max(0, loadedSum - prevLoaded)
+                const deltaTime = Math.max(0.001, (now - prevTs) / 1000)
+                const instantSpeed = deltaBytes / deltaTime
+                setSpeedSamples((prev) => {
+                  const next = prev.slice(-4).concat([instantSpeed])
+                  return next
+                })
+                lastLoadedRef.current = loadedSum
+                lastTsRef.current = now
+              } catch (e) {
+                // ignore sampling errors
+              }
             })
           } catch (err) {
             console.error('upload error', err)
@@ -116,7 +151,7 @@ export default function NewRequestModal({ isOpen, onClose }) {
         setCombinedProgress(100)
         setUploading(false)
       }
-      qc.invalidateQueries(['leaveRequests'])
+  if (qc && qc.invalidateQueries) qc.invalidateQueries(['leaveRequests'])
       toast.success('Request submitted')
       onClose()
     },
@@ -131,19 +166,9 @@ export default function NewRequestModal({ isOpen, onClose }) {
   const [currentRequestId, setCurrentRequestId] = useState(null)
   const [bytesLoadedTotal, setBytesLoadedTotal] = useState(0)
   const [uploadStartTs, setUploadStartTs] = useState(null)
-
-  const validateStep = (s) => {
-    const err = {}
-    if (s === 0) {
-      if (!form.leave_type) err.leave_type = 'Select a leave type'
-      if (!form.start_date) err.start_date = 'Start date required'
-      if (!form.end_date) err.end_date = 'End date required'
-      if (form.start_date && form.end_date && new Date(form.end_date) < new Date(form.start_date)) err.end_date = 'End date must be after start date'
-      if (!form.reason || form.reason.length < 10) err.reason = 'Reason must be at least 10 characters'
-    }
-    setErrors(err)
-    return Object.keys(err).length === 0
-  }
+  const [speedSamples, setSpeedSamples] = useState([]) // bytes/sec samples for moving average
+  const lastLoadedRef = useRef(0)
+  const lastTsRef = useRef(null)
 
   const submit = async (e) => {
     e && e.preventDefault()
@@ -187,10 +212,21 @@ export default function NewRequestModal({ isOpen, onClose }) {
         toast('Please submit the request first to upload attachments')
         return
       }
+      // show combined upload UI during retry
+      setCurrentRequestId(rid)
+      setUploading(true)
+      setUploadStartTs(Date.now())
+      setCombinedProgress(0)
       await uploadLeaveDocument(rid, fd, (ev) => {
         const pct = ev.total ? Math.round((ev.loaded / ev.total) * 100) : 0
         setUploadProgress((prev) => ({ ...prev, [index]: pct }))
+        // if single file, combined percent equals this file's percent; otherwise approximate
+        const totalBytes = files.reduce((s, e) => s + (e.file?.size || 0), 0)
+        const combined = totalBytes ? Math.round((ev.loaded / (files[index].file.size || 1)) * (files[index].file.size / totalBytes) * 100) : pct
+        setCombinedProgress(combined)
       })
+      setCombinedProgress(100)
+      setUploading(false)
     } catch (err) {
       setFileErrors((prev) => ({ ...prev, [index]: 'Upload failed' }))
     }
@@ -200,11 +236,11 @@ export default function NewRequestModal({ isOpen, onClose }) {
     <>
     <Dialog open={isOpen} onClose={onClose} className="" initialFocus={selectRef}>
       <div className="min-h-screen px-4 text-center">
-        <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
+        <DialogOverlay className="fixed inset-0 bg-black opacity-30" />
 
         <span className="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
         <motion.div initial={{ scale: 0.98, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="inline-block w-full max-w-xl p-6 my-8 overflow-hidden align-middle transition-all transform bg-white dark:bg-gray-900 shadow-xl rounded-2xl">
-          <Dialog.Title className="text-lg font-medium">New Leave Request</Dialog.Title>
+          <DialogTitle className="text-lg font-medium">New Leave Request</DialogTitle>
 
           <div className="mt-3 mb-4">
             <div className="flex items-center space-x-3">
@@ -233,20 +269,20 @@ export default function NewRequestModal({ isOpen, onClose }) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm">Start date</label>
-                    <input required type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="mt-1 block w-full rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+                    <label htmlFor="start-date" className="block text-sm">Start date</label>
+                      <input id="start-date" required type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} className="mt-1 block w-full rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
                     {errors.start_date && <div className="text-xs text-red-600 mt-1">{errors.start_date}</div>}
                   </div>
                   <div>
-                    <label className="block text-sm">End date</label>
-                    <input required type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className="mt-1 block w-full rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+                    <label htmlFor="end-date" className="block text-sm">End date</label>
+                      <input id="end-date" required type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} className="mt-1 block w-full rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
                     {errors.end_date && <div className="text-xs text-red-600 mt-1">{errors.end_date}</div>}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm">Reason</label>
-                  <textarea required rows={4} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} className="mt-1 block w-full rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
+                  <label htmlFor="reason" className="block text-sm">Reason</label>
+                  <textarea id="reason" required rows={4} value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} className="mt-1 block w-full rounded-md border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800" />
                   <div className="text-xs text-gray-400 mt-1">{form.reason.length} characters</div>
                   {errors.reason && <div className="text-xs text-red-600 mt-1">{errors.reason}</div>}
                 </div>
@@ -272,10 +308,10 @@ export default function NewRequestModal({ isOpen, onClose }) {
                           <div className="text-xs text-gray-500">{Math.round(fobj.file.size / 1024)} KB {fobj.error ? <span className="text-red-600">• {fobj.error}</span> : null}</div>
                         </div>
                         <div className="w-48 text-right">
-                          {uploadProgress[idx] ? (
-                            <div className="text-xs">Uploading: {uploadProgress[idx]}%</div>
-                          ) : fileErrors[idx] ? (
+                          {fileErrors[idx] ? (
                             <div className="text-xs text-red-600">{fileErrors[idx]} <button type="button" onClick={() => retryUpload(null, idx)} className="ml-2 text-indigo-600 text-xs">Retry</button></div>
+                          ) : uploadProgress[idx] ? (
+                            <div className="text-xs">Uploading: {uploadProgress[idx]}%</div>
                           ) : (
                             <div className="text-xs text-gray-500">Ready</div>
                           )}
@@ -311,7 +347,7 @@ export default function NewRequestModal({ isOpen, onClose }) {
                               <div className="h-2 bg-indigo-600" style={{ width: `${uploadProgress[idx] || 0}%` }} />
                             </div>
                             <div className="flex items-center justify-between mt-1">
-                              <div className="text-xs text-gray-500">{uploadProgress[idx] ? `${uploadProgress[idx]}%` : fileErrors[idx] ? <span className="text-red-600">{fileErrors[idx]}</span> : 'Pending'}</div>
+                              <div className="text-xs text-gray-500">{fileErrors[idx] ? <span className="text-red-600">{fileErrors[idx]}</span> : uploadProgress[idx] ? `${uploadProgress[idx]}%` : 'Pending'}</div>
                               <div>
                                 {fileErrors[idx] ? (
                                   <>
@@ -344,7 +380,7 @@ export default function NewRequestModal({ isOpen, onClose }) {
               </div>
               <div className="flex items-center space-x-2">
                 <button type="button" onClick={onClose} className="px-4 py-2 rounded-md border">Cancel</button>
-                <button type="submit" disabled={mutation.isLoading} className="px-4 py-2 rounded-md bg-gradient-to-r from-indigo-600 to-indigo-400 text-white flex items-center space-x-2">
+                <button type="submit" onClick={submit} disabled={mutation.isLoading} className="px-4 py-2 rounded-md bg-gradient-to-r from-indigo-600 to-indigo-400 text-white flex items-center space-x-2">
                   {mutation.isLoading ? <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg> : null}
                   <span>{step === 0 ? 'Next' : 'Submit'}</span>
                 </button>
@@ -354,17 +390,24 @@ export default function NewRequestModal({ isOpen, onClose }) {
         </motion.div>
       </div>
   </Dialog>
-  <CombinedUploadModal
-      open={uploading}
-      onClose={() => {}}
-      progress={combinedProgress}
-      etaSeconds={uploadStartTs && bytesLoadedTotal ? (() => {
+  {(() => {
+    let eta = null
+    if (uploadStartTs && bytesLoadedTotal > 0) {
+      let avgSpeed = null
+      if (speedSamples && speedSamples.length) {
+        const sum = speedSamples.reduce((a, b) => a + b, 0)
+        avgSpeed = sum / speedSamples.length
+      } else {
         const elapsed = (Date.now() - uploadStartTs) / 1000
-        const speed = bytesLoadedTotal / Math.max(1, elapsed)
-        const remaining = Math.max(0, files.reduce((s, e) => s + (e.file?.size || 0), 0) - bytesLoadedTotal)
-        return speed > 0 ? remaining / speed : null
-      })() : null}
-    />
+        avgSpeed = bytesLoadedTotal / Math.max(1, elapsed)
+      }
+      const remaining = Math.max(0, files.reduce((s, e) => s + (e.file?.size || 0), 0) - bytesLoadedTotal)
+      if (avgSpeed && avgSpeed > 0) eta = Math.round(remaining / avgSpeed)
+    }
+    return (
+      <CombinedUploadModal open={uploading} onClose={() => {}} progress={combinedProgress} etaSeconds={eta} />
+    )
+  })()}
     </>
   )
 }

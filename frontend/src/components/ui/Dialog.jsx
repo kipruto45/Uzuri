@@ -1,8 +1,8 @@
 import React from 'react'
 import * as RadixDialog from '@radix-ui/react-dialog'
 
-// A small wrapper that exposes a similar surface to previous Dialog usage.
-export default function Dialog({ open, onClose, children, className }) {
+// Radix-based Dialog wrapper that provides the previous API surface used across the app.
+export default function Dialog({ open, onClose, children, className, initialFocus }) {
   return (
     <RadixDialog.Root open={open} onOpenChange={(o) => { if (!o) onClose && onClose() }}>
       <RadixDialog.Portal>
