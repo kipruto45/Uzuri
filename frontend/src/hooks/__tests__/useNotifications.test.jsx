@@ -37,7 +37,8 @@ jest.mock('@tanstack/react-query', () => {
 })
 
 import React from 'react'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook } from '@testing-library/react'
+import { act } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createTestQueryClient } from '../../test-utils'
 import * as notifications from '../../services/notifications'

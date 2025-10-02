@@ -14,6 +14,10 @@ import AiSupportPage from '../modules/ai_support/AiSupportPage'
 import CalendarPage from '../modules/calendar/CalendarPage'
 import ClearancePage from '../modules/clearance/ClearancePage'
 import CoreDashboard from '../modules/core/CoreDashboard'
+import UsersPage from '../modules/core/UsersPage'
+import RolesPage from '../modules/core/RolesPage'
+import ProfilesPage from '../modules/core/ProfilesPage'
+import ResourcePage from '../modules/core/ResourcePage'
 import RequireAuth from '../auth/RequireAuth'
 
 export default function AppRoutes() {
@@ -32,6 +36,10 @@ export default function AppRoutes() {
     <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
   <Route path="/clearance" element={<RequireAuth><ClearancePage /></RequireAuth>} />
   <Route path="/core" element={<RequireAuth><CoreDashboard /></RequireAuth>} />
+  <Route path="/core/users" element={<RequireAuth><UsersPage /></RequireAuth>} />
+  <Route path="/core/roles" element={<RequireAuth><RolesPage /></RequireAuth>} />
+  <Route path="/core/profiles" element={<RequireAuth><ProfilesPage /></RequireAuth>} />
+  <Route path="/core/:resource" element={<RequireAuth><ResourcePage /></RequireAuth>} />
       <Route path="/" element={<Navigate to="/notifications" replace />} />
     </Routes>
   )

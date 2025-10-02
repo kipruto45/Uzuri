@@ -1,5 +1,6 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
+import { act } from 'react'
 import userEvent from '@testing-library/user-event'
 
 // Instead of exercising react-query internals we mock the hook exports
@@ -33,7 +34,9 @@ describe('useAiSupport hooks (consumer behavior)', () => {
       return <div data-testid="convs">{JSON.stringify(data)}</div>
     }
 
-    render(<Test />)
+    await act(async () => {
+      render(<Test />)
+    })
     expect(await screen.findByTestId('convs')).toHaveTextContent('hi')
   })
 
@@ -53,7 +56,9 @@ describe('useAiSupport hooks (consumer behavior)', () => {
       )
     }
 
-    render(<Test />)
+    await act(async () => {
+      render(<Test />)
+    })
     await userEvent.click(screen.getByRole('button', { name: /create/i }))
     expect(createMut.mutate).toHaveBeenCalledWith({ message: 'abc' })
   })
@@ -78,7 +83,9 @@ describe('useAiSupport hooks (consumer behavior)', () => {
       )
     }
 
-    render(<Test />)
+    await act(async () => {
+      render(<Test />)
+    })
     expect(await screen.findByTestId('alerts')).toHaveTextContent('test')
     await userEvent.click(screen.getByRole('button', { name: /create/i }))
     expect(createMut.mutate).toHaveBeenCalledWith({ message: 'new' })
