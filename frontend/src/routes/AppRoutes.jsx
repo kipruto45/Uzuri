@@ -9,6 +9,10 @@ import PaymentsPage from '../modules/payments/PaymentsPage'
 import ProfilePage from '../modules/my_profile/ProfilePage'
 import LeaveListPage from '../modules/academic_leave/pages/LeaveListPage'
 import AcademicLeavePage from '../modules/academic_leave/AcademicLeavePage'
+import AccessibilityPage from '../modules/accessibility_ai/AccessibilityPage'
+import AiSupportPage from '../modules/ai_support/AiSupportPage'
+import CalendarPage from '../modules/calendar/CalendarPage'
+import ClearancePage from '../modules/clearance/ClearancePage'
 import RequireAuth from '../auth/RequireAuth'
 
 export default function AppRoutes() {
@@ -22,6 +26,10 @@ export default function AppRoutes() {
       <Route path="/payments" element={<RequireAuth><PaymentsPage /></RequireAuth>} />
       <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
   <Route path="/academic-leave" element={<RequireAuth><AcademicLeavePage /></RequireAuth>} />
+  <Route path="/accessibility" element={<RequireAuth><AccessibilityPage /></RequireAuth>} />
+  <Route path="/ai-support" element={<RequireAuth><AiSupportPage /></RequireAuth>} />
+    <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
+  <Route path="/clearance" element={<RequireAuth><ClearancePage /></RequireAuth>} />
       <Route path="/" element={<Navigate to="/notifications" replace />} />
     </Routes>
   )
