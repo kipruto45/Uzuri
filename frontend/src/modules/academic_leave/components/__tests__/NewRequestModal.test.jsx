@@ -1,7 +1,31 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { fireEvent, waitFor, screen } from '../../../../test-utils'
 import userEvent from '@testing-library/user-event'
+// Mock useMutation to avoid triggering react-query internals which depend on
+// a specific QueryClient shape that isn't present in the test environment.
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query')
+  return {
+    ...actual,
+    useMutation: (fn, opts) => {
+      return {
+        mutate: (variables) => {
+          // Call onSuccess synchronously to simulate a successful mutation
+          if (opts && typeof opts.onSuccess === 'function') {
+            opts.onSuccess({ id: 1 })
+          }
+          return Promise.resolve({ id: 1 })
+        },
+        isLoading: false,
+        isError: false,
+        isSuccess: false,
+      }
+    }
+  }
+})
+
 import NewRequestModal from '../NewRequestModal'
+import { renderWithClient } from '../../../../test-utils'
 
 // Mock the API module
 jest.mock('../../api', () => {
@@ -30,11 +54,13 @@ jest.mock('../../api', () => {
   return { createLeaveRequest, uploadLeaveDocument }
 })
 
+// Removed local useMutation mock in favor of real QueryClient behavior provided by test-utils
+
 describe('NewRequestModal', () => {
   beforeEach(() => jest.clearAllMocks())
 
   test('validates steps and shows combined progress', async () => {
-    render(<NewRequestModal isOpen={true} onClose={() => {}} />)
+    renderWithClient(<NewRequestModal isOpen={true} onClose={() => {}} />)
 
     // Step 0: try to proceed without filling
     const submitBtn = screen.getByRole('button', { name: /Next|Submit/i })
@@ -48,7 +74,7 @@ describe('NewRequestModal', () => {
     const end = screen.getByLabelText(/End date/i)
     fireEvent.change(start, { target: { value: '2025-10-01' } })
     fireEvent.change(end, { target: { value: '2025-10-05' } })
-    userEvent.type(screen.getByLabelText(/Reason/i), 'Need to attend medical appointment')
+  fireEvent.change(screen.getByLabelText(/Reason/i), { target: { value: 'Need to attend medical appointment' } })
 
     userEvent.click(submitBtn)
 

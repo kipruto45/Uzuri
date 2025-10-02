@@ -1,3 +1,33 @@
+Frontend README
+===============
+
+Quick commands (Windows PowerShell)
+
+Install dependencies (use legacy-peer-deps if necessary):
+
+```powershell
+cd frontend
+npm ci --legacy-peer-deps
+```
+
+Run Jest unit tests:
+
+```powershell
+cd frontend
+npm test -- --runInBand
+```
+
+Start dev server (Vite):
+
+```powershell
+cd frontend
+npm run dev
+```
+
+Cypress API-only test
+
+- The API-only test `cypress/e2e/api_upload_spec.cy.js` expects environment variables set for the API base URL and any auth token. In CI these are provided via GitHub Secrets `CYPRESS_BASE_URL` and `API_TOKEN`.
+- To run locally, set `CYPRESS_baseUrl` or use `npx cypress open` and configure the environment.
 # Uzuri Frontend (React + Vite)
 
 This is a small React frontend scaffold generated from the backend repository. It includes a tiny API explorer so you can quickly call your Django backend.
