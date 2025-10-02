@@ -1,29 +1,6 @@
 import React from 'react'
 import { fireEvent, waitFor, screen } from '../../../../test-utils'
 import userEvent from '@testing-library/user-event'
-// Mock useMutation to avoid triggering react-query internals which depend on
-// a specific QueryClient shape that isn't present in the test environment.
-jest.mock('@tanstack/react-query', () => {
-  const actual = jest.requireActual('@tanstack/react-query')
-  return {
-    ...actual,
-    useMutation: (fn, opts) => {
-      return {
-        mutate: (variables) => {
-          // Call onSuccess synchronously to simulate a successful mutation
-          if (opts && typeof opts.onSuccess === 'function') {
-            opts.onSuccess({ id: 1 })
-          }
-          return Promise.resolve({ id: 1 })
-        },
-        isLoading: false,
-        isError: false,
-        isSuccess: false,
-      }
-    }
-  }
-})
-
 import NewRequestModal from '../NewRequestModal'
 import { renderWithClient } from '../../../../test-utils'
 
