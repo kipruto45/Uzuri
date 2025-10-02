@@ -3,6 +3,7 @@ import { listClearanceDocuments, uploadClearanceDocument, deleteClearanceDocumen
 import ClearanceList from './components/ClearanceList'
 import PreviewModal from './components/PreviewModal'
 import MetadataEditor from './components/MetadataEditor'
+import VersionsModal from './components/VersionsModal'
 import ClearanceUpload from './components/ClearanceUpload'
 import { DocumentIcon } from './components/Icons'
 
@@ -121,6 +122,7 @@ export default function ClearancePage() {
       </div>
       <PreviewModal open={previewOpen} fileBlob={previewBlob} fileName={previewName} onClose={() => setPreviewOpen(false)} />
       <MetadataEditor open={editorOpen} initial={editingDoc || {}} onClose={() => setEditorOpen(false)} onSave={onSaveMetadata} />
+      <VersionsModal open={!!editingDoc && !!editingDoc.id && false} id={editingDoc?.id} onClose={() => {}} />
     </div>
   )
 }
