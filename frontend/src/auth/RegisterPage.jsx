@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 export default function RegisterPage() {
   return (
@@ -6,5 +6,5 @@ export default function RegisterPage() {
       <h2>Register (stub)</h2>
       <p>Registration flow should call /api/v1/auth/register/</p>
     </div>
-  )
+  );
 }

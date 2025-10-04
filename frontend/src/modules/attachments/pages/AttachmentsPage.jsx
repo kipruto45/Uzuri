@@ -1,5 +1,5 @@
-import React from 'react'
-import AttachmentList from '../components/AttachmentList'
+import React from "react";
+import AttachmentList from "../components/AttachmentList";
 
 export default function AttachmentsPage() {
   return (
@@ -7,5 +7,5 @@ export default function AttachmentsPage() {
       <h2>Attachments</h2>
       <AttachmentList />
     </div>
-  )
+  );
 }

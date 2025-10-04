@@ -2,13 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-:root{--bg:theme(colors.gray.50)}
+:root {
+  --bg: theme(colors.gray.50);
+}
 
-html,body,#root{height:100%}
-body{font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial;
+}
 
-.dark body { background-color: #0f172a; color: #e6eef8 }
+.dark body {
+  background-color: #0f172a;
+  color: #e6eef8;
+}
 
-.hero-gradient { background: linear-gradient(90deg, #eef2ff 0%, #fef3c7 100%); }
-.container-max { max-width: 1200px; margin-left: auto; margin-right: auto; }
-
+.hero-gradient {
+  background: linear-gradient(90deg, #eef2ff 0%, #fef3c7 100%);
+}
+.container-max {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}

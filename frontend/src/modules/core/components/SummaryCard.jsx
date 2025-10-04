@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 export default function SummaryCard({ title, value, icon }) {
   return (
@@ -6,8 +6,8 @@ export default function SummaryCard({ title, value, icon }) {
       <div className="p-2 bg-indigo-50 rounded">{icon}</div>
       <div>
         <div className="text-sm text-gray-500">{title}</div>
-        <div className="text-2xl font-semibold">{value ?? '—'}</div>
+        <div className="text-2xl font-semibold">{value ?? "—"}</div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,3 +1,4 @@
-import axiosClient from '../../api/axiosClient'
+import axiosClient from "../../api/axiosClient";
 
-export const fetchGraduationStatus = () => axiosClient.get('graduation/status/')
+export const fetchGraduationStatus = () =>
+  axiosClient.get("graduation/status/");

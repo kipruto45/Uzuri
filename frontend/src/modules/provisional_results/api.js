@@ -1,3 +1,4 @@
-import axiosClient from '../../api/axiosClient'
+import axiosClient from "../../api/axiosClient";
 
-export const fetchProvisionalResults = () => axiosClient.get('provisional_results/')
+export const fetchProvisionalResults = () =>
+  axiosClient.get("provisional_results/");

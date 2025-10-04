@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 export default function FeesPage() {
   return (
@@ -6,5 +6,5 @@ export default function FeesPage() {
       <h2>Fees</h2>
       <p>Fee statements, charts and download options will appear here.</p>
     </div>
-  )
+  );
 }
