@@ -13,7 +13,7 @@ class DisciplinaryAnalyticsTest(TestCase):
 		self.staff = User.objects.create_user(email='staff1@example.com', password='testpass', is_staff=True)
 		self.client = APIClient()
 		self.client.force_authenticate(user=self.staff)
-		for status in ['resolved', 'pending', 'appeal']:
+		for status in ['resolved', 'reported', 'appealed']:
 			DisciplinaryCase.objects.create(student=self.profile, status=status)
 
 	def test_analytics_endpoint(self):

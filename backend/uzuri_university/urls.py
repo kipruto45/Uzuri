@@ -43,7 +43,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Simple template-based pages for development / preview
-    path('', include('uzuri_university.views_templates') if False else ''),
+    # development template routes are appended later — do not include here with an empty string
     path('api/notifications/analytics/', public_analytics),
     path('api/', include('core.urls')),
     path('api/attachments/', include('attachments.urls')),
