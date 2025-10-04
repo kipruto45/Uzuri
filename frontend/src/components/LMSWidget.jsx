@@ -1,10 +1,10 @@
-import React from 'react'
-import { Card, CardContent } from '../components/ui/Card'
-import { useLMSCourses } from '../hooks/useLMS'
+import React from "react";
+import { Card, CardContent } from "../components/ui/Card";
+import { useLMSCourses } from "../hooks/useLMS";
 
 export default function LMSWidget() {
-  const { data: courses = [], isLoading } = useLMSCourses()
-  if (isLoading) return <div className="p-4">Loading courses…</div>
+  const { data: courses = [], isLoading } = useLMSCourses();
+  if (isLoading) return <div className="p-4">Loading courses…</div>;
   return (
     <Card>
       <CardContent>
@@ -16,5 +16,5 @@ export default function LMSWidget() {
         </ul>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,3 +1,3 @@
-import axiosClient from '../../api/axiosClient'
+import axiosClient from "../../api/axiosClient";
 
-export const fetchFinalResults = () => axiosClient.get('final_results/')
+export const fetchFinalResults = () => axiosClient.get("final_results/");

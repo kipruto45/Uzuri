@@ -1,3 +1,4 @@
-import axiosClient from '../api/axiosClient'
+import axiosClient from "../api/axiosClient";
 
-export const listCalendarEvents = () => axiosClient.get('/calendar/events/').then((r) => r.data)
+export const listCalendarEvents = () =>
+  axiosClient.get("/calendar/events/").then((r) => r.data);

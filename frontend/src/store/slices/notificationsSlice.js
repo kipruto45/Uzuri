@@ -1,18 +1,19 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
 
 const notificationsSlice = createSlice({
-  name: 'notifications',
+  name: "notifications",
   initialState: { items: [] },
   reducers: {
     pushNotification(state, action) {
-      state.items.unshift(action.payload)
-      if (state.items.length > 50) state.items.pop()
+      state.items.unshift(action.payload);
+      if (state.items.length > 50) state.items.pop();
     },
     clearNotifications(state) {
-      state.items = []
-    }
-  }
-})
+      state.items = [];
+    },
+  },
+});
 
-export const { pushNotification, clearNotifications } = notificationsSlice.actions
-export default notificationsSlice.reducer
+export const { pushNotification, clearNotifications } =
+  notificationsSlice.actions;
+export default notificationsSlice.reducer;

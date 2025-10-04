@@ -1,8 +1,8 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
+import React from "react";
+import { useSelector } from "react-redux";
 
-export default function NotificationsPage(){
-  const items = useSelector(s => s.notifications.items)
+export default function NotificationsPage() {
+  const items = useSelector((s) => s.notifications.items);
 
   return (
     <div>
@@ -14,5 +14,5 @@ export default function NotificationsPage(){
         ))}
       </ul>
     </div>
-  )
+  );
 }

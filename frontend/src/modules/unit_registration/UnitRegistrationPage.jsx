@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 export default function UnitRegistrationPage() {
   return (
@@ -6,5 +6,5 @@ export default function UnitRegistrationPage() {
       <h2>Unit Registration</h2>
       <p>Registration form and warnings will appear here.</p>
     </div>
-  )
+  );
 }

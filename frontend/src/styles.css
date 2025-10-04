@@ -1,13 +1,79 @@
-:root{--bg:#f7f8fb;--card:#fff;--accent:#0366d6;--muted:#6b7280}
-body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:var(--bg); color:#111; margin:0}
-.app-container{max-width:980px;margin:32px auto;padding:20px}
-header h1{margin:0;font-size:28px}
-.api-explorer{margin-top:20px;background:var(--card);padding:16px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
-.form-row{display:flex;gap:10px;align-items:center;margin:10px 0}
-.form-row label{min-width:60px;color:var(--muted)}
-.form-row input, .form-row select, .form-row textarea{flex:1;padding:8px;border:1px solid #e6e9ef;border-radius:6px}
-.form-row textarea{height:120px;font-family:monospace}
-button{background:var(--accent);color:#fff;border:none;padding:8px 14px;border-radius:6px;cursor:pointer}
-.response pre{background:#0b1220;color:#e6eef8;padding:12px;border-radius:6px;overflow:auto}
-.response .error{background:#2b0b0b}
-footer{margin-top:18px;color:var(--muted)}
+:root {
+  --bg: #f7f8fb;
+  --card: #fff;
+  --accent: #0366d6;
+  --muted: #6b7280;
+}
+body {
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial;
+  background: var(--bg);
+  color: #111;
+  margin: 0;
+}
+.app-container {
+  max-width: 980px;
+  margin: 32px auto;
+  padding: 20px;
+}
+header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+.api-explorer {
+  margin-top: 20px;
+  background: var(--card);
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+.form-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+}
+.form-row label {
+  min-width: 60px;
+  color: var(--muted);
+}
+.form-row input,
+.form-row select,
+.form-row textarea {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #e6e9ef;
+  border-radius: 6px;
+}
+.form-row textarea {
+  height: 120px;
+  font-family: monospace;
+}
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.response pre {
+  background: #0b1220;
+  color: #e6eef8;
+  padding: 12px;
+  border-radius: 6px;
+  overflow: auto;
+}
+.response .error {
+  background: #2b0b0b;
+}
+footer {
+  margin-top: 18px;
+  color: var(--muted);
+}

@@ -1,60 +1,68 @@
-import React, { useEffect, useState, useRef } from 'react'
-import Lightbox from '../../../components/Lightbox'
+import React, { useEffect, useState, useRef } from "react";
+import Lightbox from "../../../components/Lightbox";
 
 export default function PreviewModal({ open, fileBlob, fileName, onClose }) {
-  const [pdfUrl, setPdfUrl] = useState(null)
-  const [imgUrl, setImgUrl] = useState(null)
-  const [lightboxOpen, setLightboxOpen] = useState(false)
-  const canvasRef = useRef(null)
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [imgUrl, setImgUrl] = useState(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    if (!fileBlob) return
-    const url = URL.createObjectURL(fileBlob)
-    if (fileName && fileName.toLowerCase().endsWith('.pdf')) {
-      setPdfUrl(url)
+    if (!fileBlob) return;
+    const url = URL.createObjectURL(fileBlob);
+    if (fileName && fileName.toLowerCase().endsWith(".pdf")) {
+      setPdfUrl(url);
     } else {
-      setImgUrl(url)
+      setImgUrl(url);
     }
     return () => {
-      if (url) URL.revokeObjectURL(url)
-      setPdfUrl(null)
-      setImgUrl(null)
-    }
-  }, [fileBlob, fileName])
+      if (url) URL.revokeObjectURL(url);
+      setPdfUrl(null);
+      setImgUrl(null);
+    };
+  }, [fileBlob, fileName]);
 
   // Try to render first page using pdfjs for better cross-browser support
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     async function renderPdf() {
-      if (!pdfUrl || !canvasRef.current) return
+      if (!pdfUrl || !canvasRef.current) return;
       try {
-        const pdfjsLib = await import('pdfjs-dist/build/pdf')
-        // worker
+        // Use eval to avoid Vite attempting to pre-resolve the import during dev pre-bundling
+        const pdfjsLib = await eval('import("pdfjs-dist/build/pdf")');
+        // worker (guarded)
         try {
-          const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.entry')
-          pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker
+          const pdfjsWorker = await eval(
+            'import("pdfjs-dist/build/pdf.worker.entry")',
+          );
+          // Some bundlers export a default path, handle both
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            pdfjsWorker?.default || pdfjsWorker;
         } catch (e) {
-          // ignore worker setup on test env
+          // ignore worker setup in environments where worker entry isn't resolvable
         }
-        const loadingTask = pdfjsLib.getDocument(pdfUrl)
-        const pdf = await loadingTask.promise
-        const page = await pdf.getPage(1)
-        const viewport = page.getViewport({ scale: 1.0 })
-        const canvas = canvasRef.current
-        const context = canvas.getContext('2d')
-        canvas.height = viewport.height
-        canvas.width = viewport.width
-        const renderContext = { canvasContext: context, viewport }
-        await page.render(renderContext).promise
+        const loadingTask = pdfjsLib.getDocument(pdfUrl);
+        const pdf = await loadingTask.promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1.0 });
+        const canvas = canvasRef.current;
+        const context = canvas.getContext("2d");
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        const renderContext = { canvasContext: context, viewport };
+        await page.render(renderContext).promise;
       } catch (e) {
-        console.error('pdf rendering failed', e)
+        // Don't throw — failure to render PDF preview should not block the app or dev server
+        console.debug("pdf rendering skipped or failed", e);
       }
     }
-    if (pdfUrl) renderPdf()
-    return () => { cancelled = true }
-  }, [pdfUrl])
+    if (pdfUrl) renderPdf();
+    return () => {
+      cancelled = true;
+    };
+  }, [pdfUrl]);
 
-  if (!open) return null
+  if (!open) return null;
   return (
     <>
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -63,9 +71,16 @@ export default function PreviewModal({ open, fileBlob, fileName, onClose }) {
             <h3 className="font-medium">Preview — {fileName}</h3>
             <div className="flex items-center gap-2">
               {imgUrl && (
-                <button onClick={() => setLightboxOpen(true)} className="px-2 py-1 border rounded">Open Lightbox</button>
+                <button
+                  onClick={() => setLightboxOpen(true)}
+                  className="px-2 py-1 border rounded"
+                >
+                  Open Lightbox
+                </button>
               )}
-              <button onClick={onClose} className="px-2 py-1 border rounded">Close</button>
+              <button onClick={onClose} className="px-2 py-1 border rounded">
+                Close
+              </button>
             </div>
           </div>
           <div className="h-[70vh] flex items-center justify-center">
@@ -79,7 +94,12 @@ export default function PreviewModal({ open, fileBlob, fileName, onClose }) {
           </div>
         </div>
       </div>
-      <Lightbox open={lightboxOpen} src={imgUrl} alt={fileName} onClose={() => setLightboxOpen(false)} />
+      <Lightbox
+        open={lightboxOpen}
+        src={imgUrl}
+        alt={fileName}
+        onClose={() => setLightboxOpen(false)}
+      />
     </>
-  )
+  );
 }

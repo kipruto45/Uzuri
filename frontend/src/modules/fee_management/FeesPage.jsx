@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react'
-import { fetchStatements } from './api'
-import FeeStatement from './components/FeeStatement'
+import React, { useEffect, useState } from "react";
+import { fetchStatements } from "./api";
+import FeeStatement from "./components/FeeStatement";
 
 export default function FeesPage() {
-  const [statements, setStatements] = useState([])
+  const [statements, setStatements] = useState([]);
 
   useEffect(() => {
-    ;(async () => {
+    (async () => {
       try {
-        const data = await fetchStatements('me')
-        setStatements(data || [])
+        const data = await fetchStatements("me");
+        setStatements(data || []);
       } catch (e) {
-        console.error(e)
+        console.error(e);
       }
-    })()
-  }, [])
+    })();
+  }, []);
 
   return (
     <div className="p-4">
@@ -23,5 +23,5 @@ export default function FeesPage() {
         <FeeStatement key={s.id} statement={s} />
       ))}
     </div>
-  )
+  );
 }

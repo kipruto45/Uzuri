@@ -1,3 +1,3 @@
-import axiosClient from '../../api/axiosClient'
+import axiosClient from "../../api/axiosClient";
 
-export const fetchTimetable = () => axiosClient.get('timetable/')
+export const fetchTimetable = () => axiosClient.get("timetable/");

@@ -1,5 +1,4 @@
-Frontend README
-===============
+# Frontend README
 
 Quick commands (Windows PowerShell)
 
@@ -28,6 +27,7 @@ Cypress API-only test
 
 - The API-only test `cypress/e2e/api_upload_spec.cy.js` expects environment variables set for the API base URL and any auth token. In CI these are provided via GitHub Secrets `CYPRESS_BASE_URL` and `API_TOKEN`.
 - To run locally, set `CYPRESS_baseUrl` or use `npx cypress open` and configure the environment.
+
 # Uzuri Frontend (React + Vite)
 
 This is a small React frontend scaffold generated from the backend repository. It includes a tiny API explorer so you can quickly call your Django backend.
@@ -57,16 +57,16 @@ Wired backend endpoints
 The frontend now wires into multiple backend endpoints discovered from the Django backend configuration. Key mappings:
 
 - Auth:
-	- POST `/api/auth/login/` — login (expects JWT pair `{access, refresh}` or `token`)
-	- POST `/api/auth/register/` — register (payload depends on backend)
-	- GET `/api/auth/me/` — fetch current user
+  - POST `/api/auth/login/` — login (expects JWT pair `{access, refresh}` or `token`)
+  - POST `/api/auth/register/` — register (payload depends on backend)
+  - GET `/api/auth/me/` — fetch current user
 
 - Attachments:
-	- GET `/api/attachments/` — list attachments (attachments page)
-	- POST `/api/attachments/` — upload attachment (multipart/form-data: `file`, `title`, `description`)
+  - GET `/api/attachments/` — list attachments (attachments page)
+  - POST `/api/attachments/` — upload attachment (multipart/form-data: `file`, `title`, `description`)
 
 - API discovery:
-	- GET `/api/` — API root exposing links to resources (used by Resources page)
+  - GET `/api/` — API root exposing links to resources (used by Resources page)
 
 If any endpoint naming differs in your deployment, set `VITE_API_BASE` or edit the paths in `src` components accordingly.
 
@@ -97,10 +97,10 @@ Generic CRUD UI
 
 - The Resources page discovers available API endpoints via GET `/api/` and lists them.
 - Click any resource to open a generic CRUD UI at `/crud/<resource-name>` where you can:
-	- List items (GET)
-	- View item details (GET)
-	- Create a new item by pasting JSON and clicking Create (POST)
-	- Delete an item (DELETE)
+  - List items (GET)
+  - View item details (GET)
+  - Create a new item by pasting JSON and clicking Create (POST)
+  - Delete an item (DELETE)
 
 This UI is intentionally generic to help you explore and test backend viewsets quickly. For production UIs, create dedicated pages with proper forms and validation.
 
@@ -130,7 +130,6 @@ npm run cypress:open
 ```
 
 Notes:
+
 - The test uses file upload in fixtures. To enable `attachFile`, install `cypress-file-upload` and register it in Cypress support if you want to run the file-upload part.
 - Set `CYPRESS_BASE_URL` to your staging frontend URL to run tests against staging (e.g., `https://staging.example.com`).
-
-

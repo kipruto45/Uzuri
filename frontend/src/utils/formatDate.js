@@ -1,8 +1,8 @@
 export function formatDate(iso) {
-  if (!iso) return ''
+  if (!iso) return "";
   try {
-    return new Date(iso).toLocaleString()
+    return new Date(iso).toLocaleString();
   } catch (e) {
-    return iso
+    return iso;
   }
 }

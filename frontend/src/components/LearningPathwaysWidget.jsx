@@ -1,10 +1,10 @@
-import React from 'react'
-import { Card, CardContent } from '../components/ui/Card'
-import { useLearningPathways } from '../hooks/useLearningPathways'
+import React from "react";
+import { Card, CardContent } from "../components/ui/Card";
+import { useLearningPathways } from "../hooks/useLearningPathways";
 
 export default function LearningPathwaysWidget() {
-  const { data: paths = [], isLoading } = useLearningPathways()
-  if (isLoading) return <div className="p-4">Loading pathways…</div>
+  const { data: paths = [], isLoading } = useLearningPathways();
+  if (isLoading) return <div className="p-4">Loading pathways…</div>;
   return (
     <Card>
       <CardContent>
@@ -16,5 +16,5 @@ export default function LearningPathwaysWidget() {
         </ul>
       </CardContent>
     </Card>
-  )
+  );
 }
