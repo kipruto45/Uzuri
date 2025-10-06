@@ -1,0 +1,58 @@
+name: Django CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: uzuri
+          POSTGRES_USER: uzuri
+          POSTGRES_PASSWORD: uzuri
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://uzuri:uzuri@localhost:5432/uzuri
+      DJANGO_SETTINGS_MODULE: uzuri_university.settings
+      SECRET_KEY: testsecret
+      AFRICASTALKING_USERNAME: testuser
+      AFRICASTALKING_API_KEY: testkey
+      MPESA_CONSUMER_KEY: testkey
+      MPESA_CONSUMER_SECRET: testsecret
+      MPESA_SHORTCODE: 12345
+      MPESA_PASSKEY: testpasskey
+      MPESA_CALLBACK_URL: http://localhost:8000/api/fees/mpesa-webhook/
+      MPESA_WEBHOOK_SECRET: testwebhook
+      SMS_API_KEY: testsmskey
+      SMS_SENDER: sandbox
+      SMS_URL: https://api.sandbox.africastalking.com/version1/messaging
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r backend/requirements.txt
+    - name: Run migrations
+      run: |
+        cd backend
+        python manage.py migrate
+    - name: Run tests
+      run: |
+        cd backend
+        python manage.py test
